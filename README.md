@@ -1,10 +1,11 @@
 # swift-filestore
 Simple, file-based key-value store with full Swift Concurrency support 
 
-[![MIT License](https://img.shields.io/github/license/juyan/swift-filestore)](https://github.com/juyan/swift-filestore/blob/main/LICENSE)
-[![Package Releases](https://img.shields.io/github/v/release/juyan/swift-filestore)](https://github.com/juyan/swift-filestore/releases)
-[![Swift Version](https://img.shields.io/badge/swift-5.5-critical)](https://swift.org)
-[![Supported Platforms](https://img.shields.io/badge/platform-iOS%2014%20%7C%20macOS%2012-lightgrey)](https://developer.apple.com)
+![MIT License](https://img.shields.io/github/license/juyan/swift-filestore)
+![Package Releases](https://img.shields.io/github/v/release/juyan/swift-filestore)
+![Build Results](https://img.shields.io/github/actions/workflow/status/juyan/swift-filestore/.github/workflows/swift.yml?branch=main)
+![Swift Version](https://img.shields.io/badge/swift-5.5-critical)
+![Supported Platforms](https://img.shields.io/badge/platform-iOS%2014%20%7C%20macOS%2012-lightgrey)
 
 
 ## Why swift-filestore?
