@@ -7,6 +7,8 @@
 
 import Foundation
 
+/// Implementation of `ObjectStore` using flat files.
+/// Each namespace has a directory, and each object is serialized into a flat file under the directory.
 public final class FileObjectStore: ObjectStore {
   private static let rootDirName = "file-object-store"
 
@@ -71,19 +73,27 @@ public final class FileObjectStore: ObjectStore {
   
   public func observe<T>(key: String, namespace: String, objectType: T.Type) async -> AsyncThrowingStream<T?, Error> where T: DataRepresentable {
     let observer = await observerManager.getObserver(key: key, namespace: namespace)
-    return AsyncThrowingStream { continuation in
-      let callbackID = UUID().uuidString
-      observer.registerCallback(id: callbackID) { data in
-        if let d = data, let typed = d as? T {
-          continuation.yield(typed)
-        } else if data == nil {
-          continuation.yield(nil)
-        } else {
-          continuation.finish(throwing: "invalid data type")
+    do {
+      let existingValue = try await read(key: key, namespace: namespace, objectType: objectType)
+      return AsyncThrowingStream { continuation in
+        continuation.yield(existingValue)
+        let callbackID = UUID().uuidString
+        observer.registerCallback(id: callbackID) { data in
+          if let d = data, let typed = d as? T {
+            continuation.yield(typed)
+          } else if data == nil {
+            continuation.yield(nil)
+          } else {
+            continuation.finish(throwing: "invalid data type")
+          }
+        }
+        continuation.onTermination = { @Sendable _ in
+          observer.callbacks.removeValue(forKey: callbackID)
         }
       }
-      continuation.onTermination = { @Sendable _ in
-        observer.callbacks.removeValue(forKey: callbackID)
+    } catch {
+      return AsyncThrowingStream { continuation in
+        continuation.finish(throwing: error)
       }
     }
   }

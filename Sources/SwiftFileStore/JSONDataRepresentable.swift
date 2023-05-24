@@ -7,7 +7,8 @@
 
 import Foundation
 
-/// DataRepresentable that serialize/deserialize with JSON
+/// DataRepresentable that serialize/deserialize using JSON
+/// - Note: For large data please consider other forms of serialization, as JSON is not the most performant option.
 public protocol JSONDataRepresentable: DataRepresentable {}
 
 extension JSONDataRepresentable where Self: Codable {
