@@ -12,8 +12,7 @@ public final class FileObjectStore: ObjectStore {
 
   let rootDir: URL
   
-  private let lock = ReadWriteLock()
-  private var observers = [String: [String: Observer]]()
+  private let observerManager = ObserverManager()
 
   public static func create() throws -> FileObjectStore {
     let applicationSupportDir = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
@@ -44,11 +43,7 @@ public final class FileObjectStore: ObjectStore {
       let fileURL = dirURL.appendingPathComponent(key)
       try FileManager.default.createDirIfNotExist(url: dirURL)
       try object.serialize().write(to: fileURL)
-      if let observer = observers[namespace]?[key] {
-        observer.callbacks.values.forEach { callback in
-          callback(object)
-        }
-      }
+      await observerManager.publishValue(key: key, namespace: namespace, value: object)
     }
     return try await writeTask.value
   }
@@ -60,11 +55,7 @@ public final class FileObjectStore: ObjectStore {
       if FileManager.default.fileExists(atPath: fileURL.path) {
         try FileManager.default.removeItem(at: fileURL)
       }
-      if let observer = observers[namespace]?[key] {
-        observer.callbacks.values.forEach { callback in
-          callback(nil)
-        }
-      }
+      await observerManager.publishRemoval(namespace: namespace, key: key)
     }
     return try await removeTask.value
   }
@@ -73,31 +64,14 @@ public final class FileObjectStore: ObjectStore {
     let removeAllTask = Task {
       let dirURL = rootDir.appendingPathComponent(namespace)
       try FileManager.default.removeItem(at: dirURL)
-      if let namespaceObservers = observers[namespace]?.values {
-        namespaceObservers.forEach { observer in
-          observer.callbacks.values.forEach { callback in
-            callback(nil)
-          }
-        }
-      }
+      await observerManager.publishRemoval(namespace: namespace)
     }
     return try await removeAllTask.value
   }
   
-  public func observe<T>(key: String, namespace: String, objectType: T.Type) -> AsyncThrowingStream<T?, Error> where T: DataRepresentable {
-    lock.write {
-      if observers[namespace] == nil {
-        observers[namespace] = [:]
-      }
-      if observers[namespace]?[key] == nil {
-        observers[namespace]?[key] = Observer(key: key, namespace: namespace)
-      }
-    }
+  public func observe<T>(key: String, namespace: String, objectType: T.Type) async -> AsyncThrowingStream<T?, Error> where T: DataRepresentable {
+    let observer = await observerManager.getObserver(key: key, namespace: namespace)
     return AsyncThrowingStream { continuation in
-      guard let observer = lock.read(closure: { observers[namespace]?[key] }) else {
-        continuation.finish(throwing: "unexpected error")
-        return
-      }
       let callbackID = UUID().uuidString
       observer.registerCallback(id: callbackID) { data in
         if let d = data, let typed = d as? T {
@@ -108,33 +82,9 @@ public final class FileObjectStore: ObjectStore {
           continuation.finish(throwing: "invalid data type")
         }
       }
-      continuation.onTermination = { @Sendable [weak self] _ in
-        guard let observer = self?.lock.read(closure: { self?.observers[namespace]?[key] }) else {
-          return
-        }
-        observer.callbacks[callbackID] = nil
-        if observer.callbacks.isEmpty {
-          self?.lock.write {
-            self?.observers[namespace]?[key] = nil
-          }
-        }
+      continuation.onTermination = { @Sendable _ in
+        observer.callbacks.removeValue(forKey: callbackID)
       }
-    }
-  }
-  
-  final class Observer {
-    let key: String
-    let namespace: String
-    var callbacks: [String: ((DataRepresentable?) -> ())]
-    
-    init(key: String, namespace: String) {
-      self.key = key
-      self.namespace = namespace
-      self.callbacks = [:]
-    }
-    
-    func registerCallback(id: String, callback: @escaping ((DataRepresentable?) -> ())) {
-      callbacks[id] = callback
     }
   }
 }

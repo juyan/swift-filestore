@@ -16,7 +16,7 @@ public protocol ObjectStore {
 
   func removeAll(namespace: String) async throws
   
-  func observe<T>(key: String, namespace: String, objectType: T.Type) -> AsyncThrowingStream<T?, Error> where T: DataRepresentable
+  func observe<T>(key: String, namespace: String, objectType: T.Type) async -> AsyncThrowingStream<T?, Error> where T: DataRepresentable
 }
 
 public protocol DataRepresentable {
