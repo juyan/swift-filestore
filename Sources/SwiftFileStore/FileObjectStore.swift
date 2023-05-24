@@ -11,6 +11,8 @@ public final class FileObjectStore: ObjectStore {
   private static let rootDirName = "file-object-store"
 
   let rootDir: URL
+  
+  private let lock = ReadWriteLock()
   private var observers = [String: [String: Observer]]()
 
   public static func create() throws -> FileObjectStore {
@@ -83,14 +85,16 @@ public final class FileObjectStore: ObjectStore {
   }
   
   public func observe<T>(key: String, namespace: String, objectType: T.Type) -> AsyncThrowingStream<T?, Error> where T: DataRepresentable {
-    if observers[namespace] == nil {
-      observers[namespace] = [:]
-    }
-    if observers[namespace]?[key] == nil {
-      observers[namespace]?[key] = Observer(key: key, namespace: namespace)
+    lock.write {
+      if observers[namespace] == nil {
+        observers[namespace] = [:]
+      }
+      if observers[namespace]?[key] == nil {
+        observers[namespace]?[key] = Observer(key: key, namespace: namespace)
+      }
     }
     return AsyncThrowingStream { continuation in
-      guard let observer = observers[namespace]?[key] else {
+      guard let observer = lock.read(closure: { observers[namespace]?[key] }) else {
         continuation.finish(throwing: "unexpected error")
         return
       }
@@ -105,12 +109,14 @@ public final class FileObjectStore: ObjectStore {
         }
       }
       continuation.onTermination = { @Sendable [weak self] _ in
-        guard let observer = self?.observers[namespace]?[key] else {
+        guard let observer = self?.lock.read(closure: { self?.observers[namespace]?[key] }) else {
           return
         }
         observer.callbacks[callbackID] = nil
         if observer.callbacks.isEmpty {
-          self?.observers[namespace]?[key] = nil
+          self?.lock.write {
+            self?.observers[namespace]?[key] = nil
+          }
         }
       }
     }
