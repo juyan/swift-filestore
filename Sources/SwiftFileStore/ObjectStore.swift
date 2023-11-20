@@ -47,7 +47,13 @@ public protocol ObjectStore {
   /// ```
   /// - Parameter namespace: namespace of the object
   func removeAll(namespace: String) async throws
-  
+    
+    /// Get all objects under a certain namespace
+    /// ```
+    /// try await readAll(namespace: "Cats") // read all cat objects
+    /// ```
+    /// - Parameter namespace: namespace of the object
+  func readAll(namespace: String) async throws -> [String]
   
   /// Observe the change of a certain object identified by key and namespace. This will immediately emit the object's current value.
   /// - Parameters:

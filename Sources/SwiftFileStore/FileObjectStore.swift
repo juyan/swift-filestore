@@ -70,6 +70,24 @@ public final class FileObjectStore: ObjectStore {
     }
     return try await removeAllTask.value
   }
+    
+    public func readAll(namespace: String) async throws -> [String] {
+        let readAllTask = Task {() -> [String] in
+            var allKeys: [String] = []
+            let dirURL = rootDir.appendingPathComponent(namespace)
+            do {
+                let items = try FileManager.default.contentsOfDirectory(atPath: dirURL.path)
+                for item in items {
+                    allKeys.append(item)
+                }
+            } catch {
+                print(error.localizedDescription)
+            }
+
+            return allKeys
+        }
+        return await readAllTask.value
+    }
   
   public func observe<T>(key: String, namespace: String, objectType: T.Type) async -> AsyncThrowingStream<T?, Error> where T: DataRepresentable {
     let observer = await observerManager.getObserver(key: key, namespace: namespace)
