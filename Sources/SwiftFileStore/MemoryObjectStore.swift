@@ -26,6 +26,10 @@ public actor MemoryObjectStore: ObjectStore {
         await observerManager.publishValue(key: key, namespace: namespace, value: object)
     }
     
+    public func readAllKeys(namespace: String) async throws -> [String] {
+      return objects[namespace].map { Array($0.keys) } ?? []
+    }
+    
     public func remove(key: String, namespace: String) async throws {
         objects[namespace, default: [:]][key] = nil
         await observerManager.publishRemoval(namespace: namespace, key: key)
