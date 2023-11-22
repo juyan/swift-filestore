@@ -13,8 +13,9 @@ public actor MemoryObjectStore: ObjectStore {
     
     private var objects: [String: [String: Data]] = [:]
     private let observerManager = ObserverManager()
-
     
+    public init() {}
+
     public func read<T>(key: String, namespace: String, objectType: T.Type) async throws -> T? where T : DataRepresentable {
         return objects[namespace]?[key].flatMap { try? T.from(data: $0) }
     }
