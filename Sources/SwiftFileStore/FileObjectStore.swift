@@ -28,47 +28,41 @@ public final class FileObjectStore: ObjectStore {
   }
 
   public func read<T>(key: String, namespace: String, objectType _: T.Type) async throws -> T? where T: DataRepresentable {
-    let readTask = Task { () -> T? in
-      let fileURL = rootDir.appendingPathComponent(namespace).appendingPathComponent(key)
-      if FileManager.default.fileExists(atPath: fileURL.path) {
-        return try T.from(data: Data(contentsOf: fileURL))
-      } else {
-        return nil
-      }
+    let fileURL = rootDir.appendingPathComponent(namespace).appendingPathComponent(key)
+    if FileManager.default.fileExists(atPath: fileURL.path) {
+      return try T.from(data: Data(contentsOf: fileURL))
+    } else {
+      return nil
     }
-    return try await readTask.value
   }
 
   public func write<T>(key: String, namespace: String, object: T) async throws where T: DataRepresentable {
-    let writeTask = Task { () in
-      let dirURL = rootDir.appendingPathComponent(namespace)
-      let fileURL = dirURL.appendingPathComponent(key)
-      try FileManager.default.createDirIfNotExist(url: dirURL)
-      try object.serialize().write(to: fileURL)
+    let dirURL = rootDir.appendingPathComponent(namespace)
+    let fileURL = dirURL.appendingPathComponent(key)
+    try FileManager.default.createDirIfNotExist(url: dirURL)
+    try object.serialize().write(to: fileURL)
+    Task {
       await observerManager.publishValue(key: key, namespace: namespace, value: object)
     }
-    return try await writeTask.value
   }
 
   public func remove(key: String, namespace: String) async throws {
-    let removeTask = Task {
-      let dirURL = rootDir.appendingPathComponent(namespace)
-      let fileURL = dirURL.appendingPathComponent(key)
-      if FileManager.default.fileExists(atPath: fileURL.path) {
-        try FileManager.default.removeItem(at: fileURL)
-      }
+    let dirURL = rootDir.appendingPathComponent(namespace)
+    let fileURL = dirURL.appendingPathComponent(key)
+    if FileManager.default.fileExists(atPath: fileURL.path) {
+      try FileManager.default.removeItem(at: fileURL)
+    }
+    Task {
       await observerManager.publishRemoval(namespace: namespace, key: key)
     }
-    return try await removeTask.value
   }
 
   public func removeAll(namespace: String) async throws {
-    let removeAllTask = Task {
-      let dirURL = rootDir.appendingPathComponent(namespace)
-      try FileManager.default.removeItem(at: dirURL)
+    let dirURL = rootDir.appendingPathComponent(namespace)
+    try FileManager.default.removeItem(at: dirURL)
+    Task {
       await observerManager.publishRemoval(namespace: namespace)
     }
-    return try await removeAllTask.value
   }
   
   public func observe<T>(key: String, namespace: String, objectType: T.Type) async -> AsyncThrowingStream<T?, Error> where T: DataRepresentable {
