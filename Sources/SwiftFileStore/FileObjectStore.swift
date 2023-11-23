@@ -71,7 +71,7 @@ public final class FileObjectStore: ObjectStore {
     return try await removeAllTask.value
   }
     
-    public func readAll(namespace: String) async throws -> [String] {
+    public func readAllKeys(namespace: String) async throws -> [String] {
         let readAllTask = Task {() -> [String] in
             var allKeys: [String] = []
             let dirURL = rootDir.appendingPathComponent(namespace)
