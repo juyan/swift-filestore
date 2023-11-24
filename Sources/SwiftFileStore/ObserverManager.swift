@@ -36,32 +36,26 @@ actor ObserverManager {
   }
   
   func publishValue<T>(key: String, namespace: String, value: T) where T: DataRepresentable {
-    Task.detached(priority: .background) {
-      if let observer = await self.observers[namespace]?[key] {
-        observer.callbacks.values.forEach { callback in
-          callback(value)
-        }
+    if let observer = self.observers[namespace]?[key] {
+      observer.callbacks.values.forEach { callback in
+        callback(value)
       }
     }
   }
   
   func publishRemoval(namespace: String, key: String) {
-    Task.detached(priority: .background) {
-      if let observer = await self.observers[namespace]?[key] {
-        observer.callbacks.values.forEach { callback in
-          callback(nil)
-        }
+    if let observer = self.observers[namespace]?[key] {
+      observer.callbacks.values.forEach { callback in
+        callback(nil)
       }
     }
   }
   
   func publishRemoval(namespace: String) {
-    Task.detached(priority: .background) {
-      if let namespaceObservers = await self.observers[namespace]?.values {
-        namespaceObservers.forEach { observer in
-          observer.callbacks.values.forEach { callback in
-            callback(nil)
-          }
+    if let namespaceObservers = self.observers[namespace]?.values {
+      namespaceObservers.forEach { observer in
+        observer.callbacks.values.forEach { callback in
+          callback(nil)
         }
       }
     }
