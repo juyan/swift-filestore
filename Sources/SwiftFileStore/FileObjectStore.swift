@@ -75,18 +75,13 @@ public final class FileObjectStore: ObjectStore {
         let readAllTask = Task {() -> [String] in
             var allKeys: [String] = []
             let dirURL = rootDir.appendingPathComponent(namespace)
-            do {
-                let items = try FileManager.default.contentsOfDirectory(atPath: dirURL.path)
-                for item in items {
-                    allKeys.append(item)
-                }
-            } catch {
-                print(error.localizedDescription)
+            let items = try FileManager.default.contentsOfDirectory(atPath: dirURL.path)
+            for item in items {
+                allKeys.append(item)
             }
-
             return allKeys
         }
-        return await readAllTask.value
+        return try await readAllTask.value
     }
   
   public func observe<T>(key: String, namespace: String, objectType: T.Type) async -> AsyncThrowingStream<T?, Error> where T: DataRepresentable {
