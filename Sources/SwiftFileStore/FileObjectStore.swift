@@ -64,6 +64,11 @@ public final class FileObjectStore: ObjectStore {
       await observerManager.publishRemoval(namespace: namespace)
     }
   }
+    
+  public func readAllKeys(namespace: String) async throws -> [String] {
+    let dirURL = rootDir.appendingPathComponent(namespace)
+    return try FileManager.default.contentsOfDirectory(atPath: dirURL.path)
+  }
   
   public func observe<T>(key: String, namespace: String, objectType: T.Type) async -> AsyncThrowingStream<T?, Error> where T: DataRepresentable {
     let observer = await observerManager.getObserver(key: key, namespace: namespace)

@@ -36,6 +36,15 @@ final class MemoryObjectStoreTests: XCTestCase {
     XCTAssertNil(readResult2)
   }
   
+  func test_readAllKeys() async throws {
+    let object = TestObject(value: 1)
+    let object2 = TestObject(value: 2)
+    try await store.write(key: "test1", namespace: "test", object: object)
+    try await store.write(key: "test2", namespace: "test", object: object2)
+    let keys = try await store.readAllKeys(namespace: "test")
+    XCTAssertEqual(Set(keys), Set(["test1", "test2"]))
+  }
+  
   func test_observer() async throws {
     let object = TestObject(value: 1)
     let object2 = TestObject(value: 2)
