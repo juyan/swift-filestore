@@ -13,8 +13,10 @@ Simple, file-based key-value store with full Swift Concurrency support
 If your app is built fully under Swift Concurrency, and is in need for a simple key-value storage solution, `swift-filestore` should be a good fit.
 
 It provides basic CRUD operation and a change stream API, all under the paradigm of Swift Concurrency(`async/await`, `AsyncSequence`).
+Under the hood it simply serialize each object into a separate file, no databases or caches are involved.
 
 ## Quick Start
+
 swift-filestore does not require developers to create new struct/classes for your data model. For example, to use JSON serialization, just have your existing model conform to `JSONDataRepresentable`.
 
 ```swift
