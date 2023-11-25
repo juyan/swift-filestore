@@ -18,7 +18,7 @@ Under the hood it simply serializes each object into a separate file, no databas
 ## Quick Start
 
 Obtain an instance by calling `FileObjectStore.create()`. The method simply create a root directory under app's `Application Support` directory.
-In rare cases where it fails to create the directory, you can choose to fallback to a in-memory implementation of `FileObjectStore`, or can handle it in your own way.
+In rare cases where it fails to create the directory, you can choose to fallback to a in-memory implementation of `ObjectStore`, or can handle it in your own way.
 
 ```swift
 func createWithFallback() -> ObjectStore {
