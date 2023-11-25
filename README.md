@@ -1,5 +1,5 @@
 # swift-filestore
-Simple, file-based key-value store with full Swift Concurrency support 
+Lightweight key-value store with Structured Concurrency API. 
 
 ![MIT License](https://img.shields.io/github/license/juyan/swift-filestore)
 ![Package Releases](https://img.shields.io/github/v/release/juyan/swift-filestore)
@@ -10,12 +10,25 @@ Simple, file-based key-value store with full Swift Concurrency support
 
 ## Why swift-filestore? 
 
-If your app is built fully under Swift Concurrency, and is in need for a simple key-value storage solution, `swift-filestore` should be a good fit.
+If your app is built with Swift Concurrency and is in need for a lightweight key-value storage solution, `swift-filestore` should be a good fit.
 
-It provides basic CRUD operation and a change stream API, all under the paradigm of Swift Concurrency(`async/await`, `AsyncSequence`).
-Under the hood it simply serialize each object into a separate file, no databases or caches are involved.
+It is a key-value persistence solution which provides CRUD operation and change stream APIs under Swift's Structured Concurrency(`async/await`, `AsyncSequence`).
+Under the hood it simply serializes each object into a separate file, no databases or caches solutions are involved. This keeps your app lean and stable.
 
 ## Quick Start
+
+Obtain an instance by calling `FileObjectStore.create()`. The method simply create a root directory under app's `Application Support` directory.
+In rare cases where it fails to create the directory, you can choose to fallback to a in-memory implementation of `FileObjectStore`, or can handle it in your own way.
+
+```swift
+func createWithFallback() -> ObjectStore {
+  do {
+    return try FileObjectStore.create()
+  } catch {
+    return MemoryObjectStore()
+  }
+}
+```
 
 swift-filestore does not require developers to create new struct/classes for your data model. For example, to use JSON serialization, just have your existing model conform to `JSONDataRepresentable`.
 
@@ -26,9 +39,7 @@ struct MyModel: Codable, JSONDataRepresentable {
     let value: String
 }
 
-let objectStore = try FileObjectStore.create()
 let model = MyModel()
-
 try await objectStore.write(key: model.id, namespace: "MyModels", object: model)
 ```
 
@@ -42,7 +53,7 @@ for try await model in await objectStore.observe(key: id, namespace: "MyModels",
 ```
 
 ## Custom serialization/deserialization
-You may define your custom serialization/deserialization protocol like below:
+If you are looking for non-json serializations, you may define your custom serialization/deserialization protocol as below:
 
 ```swift
 
