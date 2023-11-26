@@ -30,7 +30,7 @@ func createWithFallback() -> ObjectStore {
 }
 ```
 
-swift-filestore does not require developers to create new struct/classes for your data model. For example, to use JSON serialization, just have your existing model conform to `JSONDataRepresentable`.
+`swift-filestore` does not require developers to create new struct/classes for your data model. For example, to use JSON serialization, just have your existing model conform to `JSONDataRepresentable`.
 
 ```swift
 
@@ -44,7 +44,8 @@ try await objectStore.write(key: model.id, namespace: "MyModels", object: model)
 ```
 
 ## Object Change Stream
-swift-filestore offers an object change subscription API via Swift Concurrency.
+
+`swift-filestore` offers an object change subscription API via Swift Concurrency.
 
 ```swift
 for try await model in await objectStore.observe(key: id, namespace: "MyModels", objectType: MyModel.self) {
@@ -53,7 +54,8 @@ for try await model in await objectStore.observe(key: id, namespace: "MyModels",
 ```
 
 ## Custom serialization/deserialization
-If you are looking for non-json serializations, you may define your custom serialization/deserialization protocol as below:
+
+If you are looking for non-json serializations, you can define your custom serialization/deserialization protocol as below:
 
 ```swift
 
@@ -74,4 +76,28 @@ struct MyModel: BinaryDataRepresentable {
     let id: String
     let value: String
 }
+```
+
+## PersistenceLog
+
+`swift-filestore` offers an immutable logging component named `PersistenceLog`. It allows developer to store records on the disk and flush them at the right time. It can be used as an alternative to in-memory logging, which may risk data loss because app can be terminated at any time by user or the system.
+
+
+Below code demonstrates how to use `PersistenceLog` to store and send in-app analytic events:
+```swift
+//data model for the analytics log
+struct AnalyticsEvent: Codable, JSONDataRepresentable {
+    let name: String
+    let metaData: String
+}
+
+//initialization
+let log = try PersistenceLogImpl<AnalyticsEvent>(name: "analytics-log")
+
+//When new event is triggered
+try await log.append(event1)
+
+//When it's time to flush and sent to remote server
+let events = try await log.flush()
+try await networkClient.sendAnalytics(events)
 ```
