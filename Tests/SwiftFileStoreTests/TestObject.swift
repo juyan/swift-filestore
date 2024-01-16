@@ -1,8 +1,5 @@
-//
-//  File.swift
-//  
-//
-//  Created by Jun Yan on 11/21/23.
+// TestObject.swift
+// Copyright (c) 2024 PacketFly Corporation
 //
 
 import Foundation
