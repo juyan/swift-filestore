@@ -4,23 +4,23 @@
 import PackageDescription
 
 let package = Package(
-  name: "SwiftFileStore",
-  platforms: [.iOS(.v14), .macOS(.v12)],
-  products: [
-    .library(
-      name: "SwiftFileStore",
-      targets: ["SwiftFileStore"]
-    ),
-  ],
-  dependencies: [],
-  targets: [
-    .target(
-      name: "SwiftFileStore",
-      dependencies: []
-    ),
-    .testTarget(
-      name: "SwiftFileStoreTests",
-      dependencies: ["SwiftFileStore"]
-    ),
-  ]
+    name: "SwiftFileStore",
+    platforms: [.iOS(.v14), .macOS(.v12)],
+    products: [
+        .library(
+            name: "SwiftFileStore",
+            targets: ["SwiftFileStore"]
+        ),
+    ],
+    dependencies: [],
+    targets: [
+        .target(
+            name: "SwiftFileStore",
+            dependencies: []
+        ),
+        .testTarget(
+            name: "SwiftFileStoreTests",
+            dependencies: ["SwiftFileStore"]
+        ),
+    ]
 )
