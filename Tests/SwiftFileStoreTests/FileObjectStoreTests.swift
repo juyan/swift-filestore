@@ -75,9 +75,9 @@ final class FileObjectStoreTests: XCTestCase {
             XCTAssertEqual(values, [nil, object, object2])
             expectation2.fulfill()
         }
-        await fulfillment(of: [expectation], timeout: 1)
+        await fulfillmentCompat(expectations: [expectation], timeout: 1)
         try await store.write(key: "test", namespace: "test", object: object)
         try await store.write(key: "test", namespace: "test", object: object2)
-        await fulfillment(of: [expectation2], timeout: 1)
+        await fulfillmentCompat(expectations: [expectation2], timeout: 1)
     }
 }
