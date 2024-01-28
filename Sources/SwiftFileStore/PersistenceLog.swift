@@ -23,12 +23,21 @@ public actor PersistenceLogImpl<ElementType>: PersistenceLog where ElementType: 
     private let dirURL: URL
     private let fileHandle: FileHandle
 
+    #if swift(>=5.7)
     public init(name: String) throws {
         let applicationSupportDir = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         let rootDir = applicationSupportDir.appendingPathComponent("persistence-log", isDirectory: true)
         try FileManager.default.createDirIfNotExist(url: rootDir)
         try self.init(name: name, rootDir: rootDir)
     }
+    #else
+    public convenience init(name: String) throws {
+        let applicationSupportDir = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        let rootDir = applicationSupportDir.appendingPathComponent("persistence-log", isDirectory: true)
+        try FileManager.default.createDirIfNotExist(url: rootDir)
+        try self.init(name: name, rootDir: rootDir)
+    }
+    #endif
 
     init(name: String, rootDir: URL) throws {
         self.name = name

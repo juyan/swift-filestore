@@ -6,7 +6,7 @@
 import XCTest
 
 final class PersistenceLogTests: XCTestCase {
-    var log: (any TestObjectLog)!
+    var log: PersistenceLogImpl<TestObject>!
 
     func test_append_flush() async throws {
         log = try! PersistenceLogImpl<TestObject>(name: "test-queue")
@@ -18,7 +18,3 @@ final class PersistenceLogTests: XCTestCase {
         XCTAssertEqual(result, [object1, object2])
     }
 }
-
-protocol TestObjectLog: PersistenceLog where Element == TestObject {}
-
-extension PersistenceLogImpl<TestObject>: TestObjectLog {}
