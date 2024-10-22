@@ -15,8 +15,11 @@ public final class FileObjectStore: ObjectStore {
 
     public static func create() throws -> FileObjectStore {
         let applicationSupportDir = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-        let rootDir = applicationSupportDir.appendingPathComponent(Self.rootDirName, isDirectory: true)
+        var rootDir = applicationSupportDir.appendingPathComponent(Self.rootDirName, isDirectory: true)
         try FileManager.default.createDirIfNotExist(url: rootDir)
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try rootDir.setResourceValues(values)
         return FileObjectStore(rootDir: rootDir)
     }
 
