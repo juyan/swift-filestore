@@ -17,6 +17,13 @@ public protocol ObjectStore {
     ///   - objectType: The type of the object
     /// - Returns: The object or nil if not present
     func read<T>(key: String, namespace: String, objectType: T.Type) async throws -> T? where T: DataRepresentable
+  
+    /// Read the raw data from storage
+    /// - Parameters:
+    ///   - key: key of the object, such as "100"
+    ///   - namespace: namespace of the object, such as "Cats"
+    /// - Returns: The raw data under that namespace and key
+    func read(key: String, namespace: String) async throws -> Data?
 
     /// Write an object to storage.
     /// ```
