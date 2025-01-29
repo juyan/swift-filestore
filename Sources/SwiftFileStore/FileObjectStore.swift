@@ -26,6 +26,15 @@ public final class FileObjectStore: ObjectStore {
     init(rootDir: URL) {
         self.rootDir = rootDir
     }
+  
+    public func read(key: String, namespace: String) async throws -> Data? {
+      let fileURL = rootDir.appendingPathComponent(namespace).appendingPathComponent(key)
+      if FileManager.default.fileExists(atPath: fileURL.path) {
+          return try Data(contentsOf: fileURL)
+      } else {
+          return nil
+      }
+    }
 
     public func read<T>(key: String, namespace: String, objectType _: T.Type) async throws -> T? where T: DataRepresentable {
         let fileURL = rootDir.appendingPathComponent(namespace).appendingPathComponent(key)
